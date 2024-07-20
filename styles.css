@@ -1,14 +1,32 @@
+@font-face {
+    font-family: "colortube";
+    src: url(ColorTube.otf);
+}
+
 body {
-    background-color: #f0f0f0;
-    font-family: Arial, sans-serif;
+    background-color: #000000;
+    font-family: "colortube", sans-serif;
     text-align: center;
+    color: aqua;
 }
 
 #visualizer {
-    border: 1px solid #ccc;
+    border: 1px solid aqua;
     margin: 20px auto;
+    background-color: #000000;
 }
 
-#fileInput, #playButton {
+#fileInput {
     margin: 20px;
+    border: 1px solid rgb(0, 0, 0);
+    border-radius: 3px;
+    background-color: black;
+    color:aqua;
+}
+
+#playButton {
+    background-color: rgb(240, 236, 236);
+    color: rgb(0, 0, 0);
+    border-radius: 2px;
+    border: 1px solid rgb(255, 255, 255);
 }
