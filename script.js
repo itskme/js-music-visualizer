@@ -1,42 +1,47 @@
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-
-// Set up the audio context
 const audioContext = new AudioContext();
-const analyser = audioContext.createAnalyser();
+const canvas = document.getElementById('visualizer');
+const ctx = canvas.getContext('2d');
+const fileInput = document.getElementById('fileInput');
+const playButton = document.getElementById('playButton');
 
-// Request access to the user's audio input
-navigator.mediaDevices.getUserMedia({ audio: true })
-  .then(stream => {
-    // Create a media stream source
-    const source = audioContext.createMediaStreamSource(stream);
+let audioSource;
+let analyser;
+let frequencyData;
 
-    // Connect the source to the analyser
-    source.connect(analyser);
-    analyser.connect(audioContext.destination);
+playButton.addEventListener('click', playAudio);
 
-    // Set up the visualization
-    let frequencyData = new Uint8Array(analyser.frequencyBinCount);
-    let barWidth = canvas.width / frequencyData.length;
-    let barHeight;
-    let x;
+fileInput.addEventListener('change', (e) => {
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const audioData = event.target.result;
+        audioContext.decodeAudioData(audioData, (buffer) => {
+            audioSource = audioContext.createBufferSource();
+            audioSource.buffer = buffer;
+            analyser = audioContext.createAnalyser();
+            audioSource.connect(analyser);
+            analyser.connect(audioContext.destination);
+            frequencyData = new Uint8Array(analyser.frequencyBinCount);
+            draw();
+        });
+    };
+    reader.readAsArrayBuffer(file);
+});
 
-    function draw() {
-      requestAnimationFrame(draw);
-      analyser.getByteFrequencyData(frequencyData);
+function playAudio() {
+    audioSource.start();
+}
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      for (let i = 0; i < frequencyData.length; i++) {
-        barHeight = frequencyData[i] * 2;
-        ctx.fillStyle = `hsl(${i * 360 / frequencyData.length}, 100%, 50%)`;
-        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-        x += barWidth;
-      }
-
-      x = 0;
+function draw() {
+    requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(frequencyData);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(255, 0, 0, 1)';
+    for (let i = 0; i < frequencyData.length; i++) {
+        const barWidth = canvas.width / frequencyData.length;
+        const barHeight = frequencyData[i] / 256 * canvas.height;
+        ctx.fillRect(i * barWidth, canvas.height - barHeight, barWidth, barHeight);
     }
-
-    draw();
-  })
-  .catch(error => console.error('Error accessing user media:', error));
+}
